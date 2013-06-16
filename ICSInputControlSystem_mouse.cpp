@@ -78,15 +78,15 @@ namespace ICS
 			int button = 0;
 			if(std::string(xmlMouseButtonBinder->Attribute("button")) == "LEFT")
 			{
-				button = OIS::/*MouseButtonID::*/MB_Left;
+				button = SDL_BUTTON_LEFT;
 			} 
 			else if(std::string(xmlMouseButtonBinder->Attribute("button")) == "RIGHT")
 			{
-				button = OIS::/*MouseButtonID::*/MB_Right;
+				button = SDL_BUTTON_RIGHT;
 			} 
 			else if(std::string(xmlMouseButtonBinder->Attribute("button")) == "MIDDLE")
 			{
-				button = OIS::/*MouseButtonID::*/MB_Middle;
+				button = SDL_BUTTON_MIDDLE;
 			} 
 			else
 			{
@@ -219,57 +219,48 @@ namespace ICS
 	}
 
 	// mouse Listeners
-	bool InputControlSystem::mouseMoved(const OIS::MouseEvent &evt) 
+	void InputControlSystem::mouseWheel(const SDL_MouseWheelEvent& evt)
+	{
+		//! @todo
+	}
+	
+	void InputControlSystem::mouseMoved(const SDL_MouseMotionEvent& evt)
 	{
 		if(mActive)
 		{
 			if(!mDetectingBindingControl)
 			{
-				if(mXmouseAxisBinded && evt.state.X.rel)
+				if(mXmouseAxisBinded && evt.xrel)
 				{
 					ControlAxisBinderItem mouseBinderItem = mControlsMouseAxisBinderMap[ /*NamedAxis::*/X ];
 					Control* ctrl = mouseBinderItem.control;
 					ctrl->setIgnoreAutoReverse(true);
 					if(mouseBinderItem.direction == Control::INCREASE)
 					{
-						ctrl->setValue( float( (evt.state.X.abs) / float(evt.state.width) ) );
+						ctrl->setValue( float( (evt.x) / float(mClientWidth) ) );
 					}
 					else if(mouseBinderItem.direction == Control::DECREASE)
 					{
-						ctrl->setValue( 1 - float( evt.state.X.abs / float(evt.state.width) ) );
+						ctrl->setValue( 1 - float( evt.x / float(mClientWidth) ) );
 					}
 				}
 
-				if(mYmouseAxisBinded && evt.state.Y.rel)
+				if(mYmouseAxisBinded && evt.yrel)
 				{
 					ControlAxisBinderItem mouseBinderItem = mControlsMouseAxisBinderMap[ /*NamedAxis::*/Y ];
 					Control* ctrl = mouseBinderItem.control;
 					ctrl->setIgnoreAutoReverse(true);
 					if(mouseBinderItem.direction == Control::INCREASE)
 					{
-						ctrl->setValue( float( (evt.state.Y.abs) / float(evt.state.height) ) );
+						ctrl->setValue( float( (evt.y) / float(mClientHeight) ) );
 					}
 					else if(mouseBinderItem.direction == Control::DECREASE)
 					{
-						ctrl->setValue( 1 - float( evt.state.Y.abs / float(evt.state.height) ) );
+						ctrl->setValue( 1 - float( evt.y / float(mClientHeight) ) );
 					}
 				}
 
-				//! @todo Whats the range of the Z axis?
-				/*if(evt.state.Z.rel)
-				{
-					ControlAxisBinderItem mouseBinderItem = mControlsAxisBinderMap[ NamedAxis::Z ];
-					Control* ctrl = mouseBinderItem.control;
-					ctrl->setIgnoreAutoReverse(true);
-					if(mouseBinderItem.direction == Control::INCREASE)
-					{
-						ctrl->setValue( float( (evt.state.Z.abs) / float(evt.state.¿width?) ) );
-					}
-					else if(mouseBinderItem.direction == Control::DECREASE)
-					{
-						ctrl->setValue( float( (1 - evt.state.Z.abs) / float(evt.state.¿width?) ) );
-					}
-				}*/
+
 			}
 			else if(mDetectingBindingListener)
 			{
@@ -282,9 +273,9 @@ namespace ICS
 						mMouseAxisBindingInitialValues[2] = 0;
 					}
 
-					mMouseAxisBindingInitialValues[0] += evt.state.X.rel;
-					mMouseAxisBindingInitialValues[1] += evt.state.Y.rel;
-					mMouseAxisBindingInitialValues[2] += evt.state.Z.rel;
+					mMouseAxisBindingInitialValues[0] += evt.xrel;
+					mMouseAxisBindingInitialValues[1] += evt.yrel;
+					//mMouseAxisBindingInitialValues[2] += evt.zrel;
 
 					if( abs(mMouseAxisBindingInitialValues[0]) > ICS_MOUSE_BINDING_MARGIN )
 					{
@@ -304,11 +295,9 @@ namespace ICS
 				}
 			}
 		}
-
-		return true;
 	}
 
-	bool InputControlSystem::mousePressed(const OIS::MouseEvent &evt, OIS::MouseButtonID btn) 
+	void InputControlSystem::mousePressed(const SDL_MouseButtonEvent &evt, Uint8 btn)
 	{
 		if(mActive)
 		{
@@ -341,11 +330,9 @@ namespace ICS
 					mDetectingBindingControl, btn, mDetectingBindingDirection);
 			}
 		}
-
-		return true;
 	}
 
-	bool InputControlSystem::mouseReleased(const OIS::MouseEvent &evt, OIS::MouseButtonID btn) 
+	void InputControlSystem::mouseReleased(const SDL_MouseButtonEvent &evt, Uint8 btn)
 	{		
 		if(mActive)
 		{
@@ -355,8 +342,6 @@ namespace ICS
 				it->second.control->setChangingDirection(Control::STOP);
 			}
 		}
-
-		return true;
 	}
 
 	// mouse auto bindings
